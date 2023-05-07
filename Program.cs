@@ -12,13 +12,13 @@
             Console.WriteLine("Laat leeg om de standaard namen te gebruiken.");
             Console.Write("\nNamen van de spelers: ");
             string names = Console.ReadLine();
-            
-            if(names == "")
+
+            if (names == "")
             {
                 int amountOfPlayers;
                 Console.Write("\nHoeveel spelers zijn er? ");
 
-                while(!int.TryParse(Console.ReadLine(), out amountOfPlayers) || amountOfPlayers < 1)
+                while (!int.TryParse(Console.ReadLine(), out amountOfPlayers) || amountOfPlayers < 1)
                 {
                     Console.Write("Geen getal of te weinig, hoeveel spelers zijn er? ");
                 }

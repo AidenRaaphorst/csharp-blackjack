@@ -5,13 +5,6 @@
 
         public static bool test(int playerPoints, int dealerPoints, int playerCardCount, int dealerCardCount, bool expected, int i = -1)
         {
-            //bool result = playerPoints <= 21
-            //                && playerPoints == dealerPoints
-            //                && (playerCardCount == dealerCardCount || (playerCardCount > 2 && dealerCardCount > 2));
-
-            //bool result = playerPoints <= 21
-            //                && playerPoints == dealerPoints;
-
             bool result = playerPoints <= 21
                             && playerPoints == dealerPoints
                             && (playerCardCount == dealerCardCount)
@@ -70,7 +63,7 @@
                 (Card.MockCards(12, 4), Card.MockCards(17, 5), (false, true, false))
             };
 
-            for(int i = 0; i < tests.Count; i++)
+            for (int i = 0; i < tests.Count; i++)
             {
                 (List<Card> playerCards, List<Card> dealerCards, (bool, bool, bool) expected) = tests[i];
                 Player.TestDealerComparison(playerCards, dealerCards, expected, i);

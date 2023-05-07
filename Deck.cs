@@ -45,7 +45,7 @@
         }
 
         public void RemoveCard(Card card) => this._cards.Remove(card);
-        
+
         public Card GetCard()
         {
             Card card = this._cards[0];

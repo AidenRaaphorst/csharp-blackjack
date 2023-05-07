@@ -3,17 +3,17 @@
     internal class Card
     {
         private static readonly Random _random = new Random();
-        private readonly Value _value;
-        private readonly Symbol _symbol;
-        private readonly Color _color;
-        private int _intValue;
+        public readonly Value CValue;
+        public readonly Symbol CSymbol;
+        public readonly Color CColor;
+        public int CIntValue;
 
         public Card(Value value, Symbol symbol)
         {
-            this._value = value;
-            this._intValue = GetIntValue();
-            this._symbol = symbol;
-            this._color = symbol == Symbol.Hearts || symbol == Symbol.Diamonds ? Color.Red : Color.Black;
+            this.CValue = value;
+            this.CIntValue = GetIntValue();
+            this.CSymbol = symbol;
+            this.CColor = symbol == Symbol.Hearts || symbol == Symbol.Diamonds ? Color.Red : Color.Black;
         }
 
         public static Card GetRandomCard()
@@ -26,11 +26,11 @@
             return new Card(value, symbol);
         }
 
-        private int SetAceValue(int totalPoints) => this._intValue = totalPoints > 10 ? 1 : 11;
+        private int SetAceValue(int totalPoints) => this.CIntValue = totalPoints > 10 ? 1 : 11;
 
         public int GetIntValue(int totalPoints = 0)
         {
-            return this._value switch
+            return this.CValue switch
             {
                 Value.Ace => SetAceValue(totalPoints),
                 Value.Two => 2,
@@ -48,7 +48,7 @@
 
         public string ValueToString()
         {
-            return this._value switch
+            return this.CValue switch
             {
                 Value.Ace => "A",
                 Value.Two => "2",
@@ -69,7 +69,7 @@
 
         public string SymbolToString()
         {
-            return this._symbol switch
+            return this.CSymbol switch
             {
                 Symbol.Clubs => "♣",
                 Symbol.Diamonds => "♦",
@@ -107,17 +107,17 @@
             int outputPoints = 0;
             int outputCardCount = 0;
 
-            for(int i = 0; i < cardCount; i++)
+            for (int i = 0; i < cardCount; i++)
             {
                 intValue = pointsPerCard;
 
-                if(i + 2 == cardCount && intValue + remainder > 11)
+                if (i + 2 == cardCount && intValue + remainder > 11)
                 {
                     intValue += remainder / 2;
                 }
-                else if(i + 1 == cardCount)
+                else if (i + 1 == cardCount)
                 {
-                    if(intValue + remainder > 11)
+                    if (intValue + remainder > 11)
                     {
                         intValue += remainder / 2;
                     }
@@ -129,7 +129,7 @@
 
                 intValue = Math.Max(0, Math.Min(intValue, 11));
 
-                if(intValue > 0)
+                if (intValue > 0)
                 {
                     Card card = GetCardByIntValue(intValue);
                     outputPoints += intValue;
@@ -138,9 +138,9 @@
                 }
             }
 
-            if(test)
+            if (test)
             {
-                if(outputPoints == totalPoints && outputCardCount == cardCount)
+                if (outputPoints == totalPoints && outputCardCount == cardCount)
                 {
                     Console.WriteLine("Passed!");
                 }
@@ -158,13 +158,13 @@
 
             return cards;
         }
-        
+
         public override string ToString()
         {
             return ValueToString() + SymbolToString();
         }
 
-        public static Value[] GetAllValues() => (Value[]) Enum.GetValues(typeof(Value));
+        public static Value[] GetAllValues() => (Value[])Enum.GetValues(typeof(Value));
 
         public static Symbol[] GetAllSymbols() => (Symbol[])Enum.GetValues(typeof(Symbol));
 
