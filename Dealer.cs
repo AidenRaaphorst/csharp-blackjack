@@ -15,12 +15,6 @@
             return this._deck.GetCard();
         }
 
-        public void Hit()
-        {
-            this.Cards.Add(this._deck.GetCard());
-            UpdateStatus(GetPoints());
-        }
-
         public void GetNewDeck()
         {
             _deck.Reset();
@@ -32,9 +26,9 @@
             int c = this.Cards.Count;
             string s = string.Join(", ", this.Cards) + (c == 1 ? $", ?" : "") + $" ({GetPoints()} punten)";
 
-            if(GetPoints() > 21)
+            if (GetPoints() > 21)
             {
-                if(color)
+                if (color)
                 {
                     Console.ForegroundColor = ConsoleColor.DarkRed;
                 }

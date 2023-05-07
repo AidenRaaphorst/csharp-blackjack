@@ -7,18 +7,22 @@
         public List<Card> Cards { get; }
         public bool IsDealer { get; }
         public int PlayedRounds { get; private set; }
-        public int WonRounds { get; private set; }
-        public int LostRounds { get; private set; }
         public bool HasWonRound { get; private set; }
         public bool HasLostRound { get; private set; }
+        public bool HasBlackjack { get; private set; }
+        public bool HasTwentyOne { get; private set; }
+        public int WonRounds { get; private set; }
+        public int LostRounds { get; private set; }
         public double Money { get; private set; }
         public double BetAmount { get; private set; }
         public double BetMultiplier { get; private set; }
         public bool LeaveBet { get; private set; }
+        public bool Insured { get; set; }
+        public bool EvenMoney { get; set; }
 
         public Player(int money = 10, string name = "", bool isDealer = false)
         {
-            if(!isDealer)
+            if (!isDealer)
             {
                 playerNumber++;
             }
@@ -26,45 +30,59 @@
             this.Name = name != "" ? name : "Speler " + playerNumber;
             this.Cards = new List<Card>();
             this.PlayedRounds = 0;
-            this.WonRounds = 0;
-            this.LostRounds = 0;
             this.IsDealer = isDealer;
             this.HasWonRound = false;
             this.HasLostRound = false;
+            this.HasBlackjack = false;
+            this.HasTwentyOne = false;
+            this.WonRounds = 0;
+            this.LostRounds = 0;
             this.Money = money;
             this.BetAmount = 0.0;
             this.BetMultiplier = 1.0;
             this.LeaveBet = false;
+            this.Insured = false;
+            this.EvenMoney = false;
         }
 
-        public void Hit(Card card) {
-            this.Cards.Add(card);
-            UpdateStatus(GetPoints());
-        }
-
-        public void UpdateStatus(int points)
+        public void Hit(Card card)
         {
+            this.Cards.Add(card);
+            UpdateStatus();
+        }
+
+        public void UpdateStatus()
+        {
+            int cardCount = this.Cards.Count;
+            int points = GetPoints();
+
             if (points > 21)
             {
                 this.HasWonRound = false;
                 this.HasLostRound = true;
+                this.HasBlackjack = false;
+                this.HasTwentyOne = false;
             }
             else if (points == 21)
             {
                 this.HasWonRound = true;
                 this.HasLostRound = false;
+                this.HasBlackjack = cardCount == 2;
+                this.HasTwentyOne = cardCount > 2;
             }
             else
             {
                 this.HasWonRound = false;
                 this.HasLostRound = false;
+                this.HasBlackjack = false;
+                this.HasTwentyOne = false;
             }
         }
 
         public int GetPoints()
         {
             int totalPoints = 0;
-            foreach(Card card in this.Cards)
+            foreach (Card card in this.Cards)
             {
                 totalPoints += card.GetIntValue(totalPoints);
             }
@@ -77,9 +95,13 @@
             this.Cards.Clear();
             this.HasLostRound = false;
             this.HasWonRound = false;
+            this.HasBlackjack = false;
+            this.HasTwentyOne = false;
             this.BetMultiplier = 1.0;
+            this.Insured = false;
+            this.EvenMoney = false;
 
-            if(!this.LeaveBet)
+            if (!this.LeaveBet)
             {
                 this.BetAmount = 0.0;
             }
@@ -87,36 +109,35 @@
 
         public string GetCardsAndPoints(bool noName = false, bool color = false, bool roundEnd = false)
         {
-            int cardCount = this.Cards.Count;
             int points = this.GetPoints();
             string s = string.Join(", ", this.Cards) + $" ({GetPoints()} punten)";
 
-            if(noName)
+            if (noName)
             {
                 return s;
             }
 
             if (this.HasWonRound)
             {
-                if(color)
+                if (color)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
                 }
 
                 string reason;
-                if(!roundEnd)
+                if (!roundEnd)
                 {
-                    reason = points == 21 && cardCount == 2 ? "BlackJack!" : "21 punten!";
+                    reason = this.HasBlackjack ? "Blackjack" : "21 punten";
                 }
                 else
                 {
-                    reason = points == 21 && cardCount == 2 ? "BlackJack!" : "gewonnen van de bank!";
+                    reason = this.HasBlackjack ? "Blackjack" : "gewonnen van de bank";
                 }
-                s = $"{this.Name} heeft {reason}: {s}";
+                s = $"{this.Name} heeft {reason}: {s}!";
             }
             else if (this.HasLostRound)
             {
-                if(color)
+                if (color)
                 {
                     Console.ForegroundColor = ConsoleColor.DarkRed;
                 }
@@ -124,7 +145,7 @@
                 string reason = points > 21 ? "is dood" : "heeft verloren";
                 s = $"{this.Name} {reason}!: " + s;
             }
-            else if(roundEnd)
+            else if (roundEnd)
             {
                 if (color)
                 {
@@ -145,10 +166,7 @@
         {
             int playerPoints = GetPoints();
             int dealerPoints = dealer.GetPoints();
-            int playerCardCount = this.Cards.Count;
-            int dealerCardCount = dealer.Cards.Count;
-
-            this.BetMultiplier = playerPoints == 21 && playerCardCount == 2 ? 1.5 : 1.0;
+            this.BetMultiplier = this.HasBlackjack && !this.EvenMoney ? 1.5 : 1.0;
 
             if (playerPoints > 21)
             {
@@ -156,57 +174,51 @@
                 this.HasLostRound = true;
                 this.LeaveBet = false;
             }
-            else if(playerPoints <= 21 && playerPoints == dealerPoints)
-            {
-                if(playerPoints < 21 || playerCardCount == dealerCardCount || (playerCardCount > 2 && dealerCardCount > 2))
-                {
-                    this.HasWonRound = false;
-                    this.HasLostRound = false;
-                    this.LeaveBet = true;
-                }
-                else
-                {
-                    if(playerCardCount < dealerCardCount)
-                    {
-                        this.HasWonRound = true;
-                        this.HasLostRound = false;
-                        this.LeaveBet = false;
-                    }
-                    else
-                    {
-                        this.HasWonRound = false;
-                        this.HasLostRound = true;
-                        this.LeaveBet = false;
-                    }
-                }
-            }
-            else if(playerPoints <= 21 && playerPoints > dealerPoints)
+            else if(dealerPoints > 21)
             {
                 this.HasWonRound = true;
                 this.HasLostRound = false;
                 this.LeaveBet = false;
             }
-            else if(playerPoints <= 21 && dealerPoints > 21)
+            else if (playerPoints > dealerPoints)
             {
                 this.HasWonRound = true;
                 this.HasLostRound = false;
                 this.LeaveBet = false;
             }
-            else
+            else if (playerPoints < dealerPoints)
             {
                 this.HasWonRound = false;
                 this.HasLostRound = true;
                 this.LeaveBet = false;
             }
+            else if(this.HasBlackjack && !dealer.HasBlackjack)
+            {
+                this.HasWonRound = true;
+                this.HasLostRound = false;
+                this.LeaveBet = false;
+            }
+            else if (!this.HasBlackjack && dealer.HasBlackjack)
+            {
+                this.HasWonRound = false;
+                this.HasLostRound = true;
+                this.LeaveBet = false;
+            }
+            else
+            {
+                this.HasWonRound = false;
+                this.HasLostRound = false;
+                this.LeaveBet = true;
+            }
 
-            if(gameEnded)
+            if (gameEnded)
             {
                 this.PlayedRounds++;
-                if(this.HasWonRound)
+                if (this.HasWonRound)
                 {
                     this.WonRounds++;
                 }
-                if(this.HasLostRound)
+                if (this.HasLostRound)
                 {
                     this.LostRounds++;
                 }
@@ -218,17 +230,31 @@
             this.BetAmount = amount;
         }
 
-        public void GetBetOutcome()
+        public void DetermineWinnings(Dealer dealer)
         {
-            if(this.LeaveBet)
+            if (this.Insured)
+            {
+                double insuranceAmount = this.BetAmount / 2;
+
+                if(dealer.HasBlackjack)
+                {
+                    this.Money += insuranceAmount * 2;
+                }
+                else
+                {
+                    this.Money -= insuranceAmount;
+                }
+            }
+
+            if (this.LeaveBet)
             {
                 return;
             }
-            else if(this.HasWonRound)
+            else if (this.HasWonRound)
             {
                 this.Money += this.BetAmount * this.BetMultiplier;
             }
-            else if(this.HasLostRound)
+            else if (this.HasLostRound)
             {
                 this.Money -= this.BetAmount;
             }
@@ -243,7 +269,7 @@
         }
 
 
-        public static bool TestDealerComparison(List<Card> playerCards, List<Card> dealerCards, (bool wonRound, bool lostRound, bool leaveBet) expected, int index = -1)
+        public static bool TestDealerComparison(List<Card> playerCards, List<Card> dealerCards, (bool hasWonRound, bool hasLostRound, bool leaveBet) expected, int index = -1)
         {
             Player player = new Player();
             Dealer dealer = new Dealer();
@@ -251,13 +277,17 @@
 
             player.Cards.AddRange(playerCards);
             dealer.Cards.AddRange(dealerCards);
+
+            player.UpdateStatus();
+            dealer.UpdateStatus();
+
             player.ComparePointsToDealer(dealer);
 
-            if(index >= 0)
+            if (index >= 0)
             {
                 Console.Write($"Test {index}: ");
             }
-            if(expected == (player.HasWonRound, player.HasLostRound, player.LeaveBet))
+            if (expected == (player.HasWonRound, player.HasLostRound, player.LeaveBet))
             {
                 passed = true;
                 Console.WriteLine("Passed!");
@@ -266,8 +296,8 @@
             {
                 passed = false;
                 Console.WriteLine("Failed!");
-                Console.WriteLine($"Expected (wonRound, lostRound): {expected}");
-                Console.WriteLine($"  Result (wonRound, lostRound): {(player.HasWonRound, player.HasLostRound, player.LeaveBet)}\n");
+                Console.WriteLine($"Expected (HasWonRound, HasLostRound, LeaveBet): {expected}");
+                Console.WriteLine($"  Result (HasWonRound, HasLostRound, LeaveBet): {(player.HasWonRound, player.HasLostRound, player.LeaveBet)}\n");
             }
 
             return passed;
