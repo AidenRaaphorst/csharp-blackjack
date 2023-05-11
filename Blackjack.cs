@@ -105,8 +105,6 @@ namespace Blackjack
                 {
                     continue;
                 }
-                player.BetMoney(1);
-                continue;
 
                 if (player.Money < 1)
                 {
@@ -122,9 +120,9 @@ namespace Blackjack
                 while (true)
                 {
                     Clear();
-                    Console.Write($"{player.Name}, hoeveel wil je inzetten (€{1:F2}-€{player.Money:F2})? €");
+                    Console.Write($"{player.Name}, hoeveel wil je inzetten (€{1:F2} - €{player.Money:F2})? €");
 
-                    string input = Console.ReadLine()?.Replace(".", ",");
+                    string input = Console.ReadLine().Replace(".", ",");
 
                     if (!double.TryParse(input, out double amount))
                     {
@@ -338,7 +336,15 @@ namespace Blackjack
                 Player player = _leaderboard[i];
                 string placeString = $"{i + 1}e".PadLeft(columnWidths[0]) + columnSeparator;
                 string nameString = $"{player.Name}".PadRight(columnWidths[1]) + columnSeparator;
-                string moneyString = $"€{player.Money:F2}".PadLeft(columnWidths[2]) + columnSeparator;
+                string moneyString;
+                if(player.Money < 0)
+                {
+                    moneyString = $"-€{Math.Abs(player.Money):F2}".PadLeft(columnWidths[2]) + columnSeparator;
+                }
+                else
+                {
+                    moneyString = $"€{player.Money:F2}".PadLeft(columnWidths[2]) + columnSeparator;
+                }
                 string wonRoundsString = $"{player.WonRounds}".PadLeft(columnWidths[3]) + columnSeparator;
 
                 Console.WriteLine(columnSeparator + placeString + nameString + moneyString + wonRoundsString);
